@@ -1,6 +1,7 @@
 import React from "react";
 import {createUserWithEmailAndPassword} from "firebase/auth";
 import {auth} from "../firebase";
+import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage"; 
 
 
 const Regis = () => {
@@ -15,7 +16,28 @@ const Regis = () => {
         try
         {
             const res = await createUserWithEmailAndPassword(auth, email, password);
-            
+
+            const storage = getStorage();
+            const storageRef = ref(storage, displayName);
+
+            const uploadTask = uploadBytesResumable(storageRef, file);
+
+            // Register three observers:
+            // 1. 'state_changed' observer, called any time the state changes
+            // 2. Error observer, called on failure
+            // 3. Completion observer, called on successful completion
+            uploadTask.on( 
+                (error) => 
+                {
+                    setErr(true);
+                }, 
+                () => 
+                {
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                    console.log('File available at', downloadURL);
+                    });
+                }
+            );
         }
         catch(err)
         {
